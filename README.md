@@ -21,7 +21,7 @@ A Django-based web application that allows teachers to manage students, their su
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/teacher-portal.git
+git clone https://github.com/Harshitakar/teacher-portal.git
 cd teacher-portal
 ```
 
