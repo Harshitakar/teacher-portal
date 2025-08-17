@@ -109,5 +109,7 @@ Login using the superuser credentials you just created.
 <img width="1366" height="768" alt="Screenshot (4)" src="https://github.com/user-attachments/assets/4ca7f425-0203-4c58-89db-a010904ec694" />
 <img width="1366" height="768" alt="Screenshot (5)" src="https://github.com/user-attachments/assets/ae4a5f82-b379-4d71-9700-0136b71faf9f" />
 <img width="1366" height="768" alt="Screenshot (6)" src="https://github.com/user-attachments/assets/6f46e7af-b770-4c38-a07f-5afc3bc9c32a" />
+<img width="1366" height="768" alt="Screenshot (7)" src="https://github.com/user-attachments/assets/9f83c857-3fba-4c51-966c-d0df73de356c" />
+<img width="1366" height="768" alt="Screenshot (8)" src="https://github.com/user-attachments/assets/d9873deb-e948-4a0c-a969-44dee7fb9d6a" />
 
 
