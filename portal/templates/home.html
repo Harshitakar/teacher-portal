@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="csrf-token" content="{{ request.COOKIES.csrf_token }}">
+</head>
+<body class="bg-gray-100">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="text-xl font-bold text-red-500">Welcome</div>
+      <div class="flex gap-6">
+        {% comment %} <a href="/" class="font-medium text-gray-700 hover:text-gray-900">Home</a> {% endcomment %}
+        <a href="/logout/" class="font-medium text-gray-700 hover:text-gray-900">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Table -->
+  <div class="max-w-5xl mx-auto mt-10 bg-white shadow rounded-lg">
+    <table class="min-w-full table-auto">
+      <thead class="bg-gray-50 border-b">
+        <tr>
+          <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">Name</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">Subject</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">Mark</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">Action</th>
+        </tr>
+      </thead>
+      <tbody id="studentsBody" class="divide-y">
+        {% for s in students %}
+        <tr data-id="{{ s.id }}">
+          <td class="px-6 py-4 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-medium">
+              {{ s.name|first|upper }}
+            </div>
+            <span class="studentName">{{ s.name }}</span>
+          </td>
+          <td class="px-6 py-4 studentSubject">{{ s.subject }}</td>
+          <td class="px-6 py-4 studentMarks">{{ s.marks }}</td>
+          <td class="px-6 py-4">
+            <div class="relative inline-block text-left z-50">
+              <button type="button"
+                      class="actionMenu inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-2 py-1 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+              ⋮
+              </button>
+              <div class="dropdownMenu absolute right-0 top-full mt-2 w-28 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-50">
+                <div class="py-1">
+                  <button class="editBtn block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</button>
+                  <button class="delBtn block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Delete</button>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="px-6 py-4 text-center text-gray-500">No students yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add/Edit Button -->
+  <div class="max-w-5xl mx-auto mt-4 flex justify-start">
+    <button id="openAddModal" class="px-6 py-2 bg-black text-white rounded hover:bg-gray-800">Add</button>
+  </div>
+
+  <!-- Modal (Add/Edit) -->
+  <div id="modal" class="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-md w-96" role="dialog" aria-modal="true">
+      <h2 id="modalTitle" class="text-lg font-semibold mb-4">Add Student</h2>
+      <form id="studentForm" class="space-y-3">
+        <input id="studentName" name="name" placeholder="Name" class="w-full border rounded px-3 py-2" required />
+        <input id="studentSubject" name="subject" placeholder="Subject" class="w-full border rounded px-3 py-2" required />
+        <input id="studentMarks" name="marks" type="number" min="0" max="100" placeholder="Marks" class="w-full border rounded px-3 py-2" required />
+        <div id="formError" class="text-red-500 text-sm hidden"></div>
+        <div class="flex justify-end gap-2 mt-4">
+          <button type="button" id="closeModal" class="px-4 py-2 border rounded">Cancel</button>
+          <button type="submit" id="formSubmitBtn" class="px-4 py-2 bg-black text-white rounded">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function getCookie(name) {
+      const m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return m ? m[2] : "";
+    }
+
+    (function () {
+      const modal = document.getElementById("modal");
+      const modalTitle = document.getElementById("modalTitle");
+      const form = document.getElementById("studentForm");
+      const errorBox = document.getElementById("formError");
+      const submitBtn = document.getElementById("formSubmitBtn");
+
+      const nameInput = document.getElementById("studentName");
+      const subjectInput = document.getElementById("studentSubject");
+      const marksInput = document.getElementById("studentMarks");
+
+      let currentAction = "add";
+      let editingId = null;
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || getCookie("csrf_token");
+
+      // Open for Add
+      document.getElementById("openAddModal").addEventListener("click", () => {
+        currentAction = "add";
+        editingId = null;
+        modalTitle.textContent = "Add Student";
+        submitBtn.textContent = "Save";
+        form.reset();
+        errorBox.classList.add("hidden");
+        modal.classList.remove("hidden");
+      });
+
+      // Close modal
+      document.getElementById("closeModal").addEventListener("click", () => modal.classList.add("hidden"));
+      modal.addEventListener("click", e => { if (e.target === modal) modal.classList.add("hidden"); });
+
+      // Form submit
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorBox.classList.add("hidden");
+
+        const formData = new FormData(form);
+        let url = "/students/add/";
+        if (currentAction === "edit" && editingId) {
+          url = `/students/${editingId}/update/`;
+        }
+
+        try {
+          const res = await fetch(url, { method: "POST", headers: { "X-CSRFToken": csrfToken }, body: formData });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || "Operation failed");
+          location.reload();
+        } catch (err) {
+          errorBox.textContent = err.message;
+          errorBox.classList.remove("hidden");
+        }
+      });
+
+      // Dropdown toggle
+      document.querySelectorAll(".actionMenu").forEach(btn => {
+        btn.addEventListener("click", e => {
+          e.stopPropagation();
+          const menu = btn.nextElementSibling;
+          document.querySelectorAll(".dropdownMenu").forEach(m => { if (m !== menu) m.classList.add("hidden"); });
+          menu.classList.toggle("hidden");
+        });
+      });
+      document.addEventListener("click", () => {
+        document.querySelectorAll(".dropdownMenu").forEach(m => m.classList.add("hidden"));
+      });
+
+      // Handle Edit
+      document.querySelectorAll(".editBtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const tr = btn.closest("tr");
+          editingId = tr.dataset.id;
+          currentAction = "edit";
+
+          nameInput.value = tr.querySelector(".studentName").textContent.trim();
+          subjectInput.value = tr.querySelector(".studentSubject").textContent.trim();
+          marksInput.value = tr.querySelector(".studentMarks").textContent.trim();
+
+          modalTitle.textContent = "Edit Student";
+          submitBtn.textContent = "Update";
+          modal.classList.remove("hidden");
+        });
+      });
+
+      // Handle Delete
+      document.querySelectorAll(".delBtn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const tr = btn.closest("tr");
+          const id = tr.dataset.id;
+          if (!confirm("Delete this student?")) return;
+          const res = await fetch(`/students/${id}/delete/`, { method: "POST", headers: { "X-CSRFToken": csrfToken } });
+          if (res.ok) tr.remove();
+        });
+      });
+
+    })();
+  </script>
+</body>
+</html>
