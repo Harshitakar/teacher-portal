@@ -102,3 +102,12 @@ Login using the superuser credentials you just created.
 - Debugging PostgreSQL connection with `.env`.  
 
 ---
+
+
+
+## Following Are the screenshots attached for referance
+<img width="1366" height="768" alt="Screenshot (4)" src="https://github.com/user-attachments/assets/4ca7f425-0203-4c58-89db-a010904ec694" />
+<img width="1366" height="768" alt="Screenshot (5)" src="https://github.com/user-attachments/assets/ae4a5f82-b379-4d71-9700-0136b71faf9f" />
+<img width="1366" height="768" alt="Screenshot (6)" src="https://github.com/user-attachments/assets/6f46e7af-b770-4c38-a07f-5afc3bc9c32a" />
+
+
